@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="message-box">
+    <h2>Chat Room: {{ room }}</h2>
+    <div class="messages" id="messages"></div>
+    <div class="typing">
+      <input type="text" rows="3" placeholder="Message" name="new_message" id="new_message" />
+      <button type="button" name="send" id="send-btn" onclick="send_message()">Send</button>
+    </div>
+  </div>
+  <script type="text/javascript">
+    var socketio = io()
+    
+    const messages = document.getElementById('messages')
+    
+    const create_message = (name, message, time) => {
+      const content = ` 
+          <div class="text">
+          <span>
+            <strong>${name}</strong>: ${message}
+          </span>
+          <span class="muted">
+            ${time}
+          </span>
+          </div>
+          `
+      messages.innerHTML += content
+    }
+    
+    socketio.on('message', (data) => {
+      create_message(data.name, data.message, data.time)
+    })
+    
+    const send_message = () => {
+      const new_message = document.getElementById('new_message')
+    
+      if (new_message.value == '') return
+    
+      socketio.emit('new_message', { data: new_message.value })
+    
+      new_message.value = ''
+    }
+  </script>
+  {% for msg in messages %}
+    <script type="text/javascript">
+      create_message('{{msg.name}}', '{{msg.message}}', '{{msg.time}}')
+    </script>
+  {% endfor %}
+{% endblock %}
